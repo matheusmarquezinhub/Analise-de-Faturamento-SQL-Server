@@ -56,11 +56,11 @@ GO
 
 INSERT INTO ControleAtendimento (Data, Comanda, Cliente, Servico, Valores, TipoPagamento, SaoClientes, Tipo_Atendimento)
 VALUES 
-('2024-01-15', 100, 'Cliente 01', 'Corte', 30.00, 'PIX', 'Sim', 'Salão'),
-('2024-01-15', 101, 'Cliente 02', 'Penteado', 45.00, 'Dinheiro', 'Não', 'Salão'),
-('2024-01-16', 102, 'Cliente 03', 'Barba', 20.00, 'VC', 'Sim', 'Domicilio'),
-('2024-01-16', 103, 'Cliente 04', 'Coloração', 80.00, 'PIX', 'Sim', 'Salão'),
-('2024-01-17', 104, 'Cliente 05', 'Corte', 35.00, 'VE', 'Não', 'Salão');
+('2025-01-15', 100, 'Cliente 01', 'Corte', 30.00, 'PIX', 'Sim', 'Salão'),
+('2025-01-15', 101, 'Cliente 02', 'Penteado', 45.00, 'Dinheiro', 'Não', 'Salão'),
+('2025-01-16', 102, 'Cliente 03', 'Barba', 20.00, 'VC', 'Sim', 'Domicilio'),
+('2025-01-16', 103, 'Cliente 04', 'Coloração', 80.00, 'PIX', 'Sim', 'Salão'),
+('2025-01-17', 104, 'Cliente 05', 'Corte', 35.00, 'VE', 'Não', 'Salão');
 GO
 
 -- =============================================
