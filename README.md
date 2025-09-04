@@ -1,110 +1,241 @@
 # 📊 Sistema de Análise de Faturamento - SQL Server
 
 ![SQL Server](https://img.shields.io/badge/Microsoft%20SQL%20Server-CC2927?style=for-the-badge&logo=microsoft%20sql%20server&logoColor=white)
+![Power BI](https://img.shields.io/badge/Power_BI-F2C811?style=for-the-badge&logo=powerbi&logoColor=black)
+![DAX](https://img.shields.io/badge/DAX-Formula_Language-orange?style=for-the-badge)
 ![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)
 
-Este repositório contém um sistema completo de análise de faturamento desenvolvido em SQL Server, projetado para controle de atendimentos e acompanhamento de metas financeiras.
+Sistema completo de análise de faturamento desenvolvido com SQL Server, Power BI e DAX para controle de atendimentos, monitoramento financeiro e acompanhamento de metas.
 
-## 🚀 Funcionalidades
+## 📋 Estrutura do Repositório
 
-- **📦 Criação de Banco de Dados**: Script completo com configurações otimizadas
-- **📋 Gestão de Atendimentos**: Registro de clientes, serviços e valores
-- **📊 Análise de Faturamento**: Consultas avançadas para insights financeiros
--   **🎯 Sistema de Metas**: Definição e acompanhamento de metas com indicadores de performance
--   **📈 Análise Temporal**: Variação percentual e tendências mensais
--   **🔍 Relatórios Estratégicos**: Dados segmentados por serviço, cliente e tipo de pagamento
+```
+📂 Analise-de-Faturamento-SQL-Server/
+├── 📂 sql-database/                 # Scripts SQL Server
+│   ├── 📄 database-creation.sql     # Criação do banco e tabelas
+│   ├── 📄 queries-analytics.sql     # Consultas analíticas
+│   └── 📄 stored-procedures.sql     # Procedures e funções
+├── 📂 dax-measures/                 # Medidas DAX Power BI
+│   ├── 📄 financial-measures.dax    # Medidas financeiras
+│   ├── 📄 operational-measures.dax  # Medidas operacionais
+│   └── 📄 comparative-analysis.dax  # Análises comparativas
+├── 📂 dashboard-images/             # Screenshots do dashboard
+├── 📄 README.md                     # Este arquivo
 
-## 🗂️ Estrutura do Banco de Dados
+```
+
+## 🗄️ Estrutura de Banco de Dados SQL Server
 
 ### Tabela Principal: `ControleAtendimento`
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `ID_Dados` | SMALLINT IDENTITY | Chave primária autoincrementável |
-| `Data` | DATE | Data do atendimento (default: data atual) |
-| `Comanda` | INT | Número da comanda (maior que 0) |
-| `Cliente` | VARCHAR(255) | Nome do cliente |
-| `Servico` | VARCHAR(50) | Tipo de serviço prestado |
-| `Valores` | DECIMAL(10,2) | Valor do serviço (maior ou igual a 0) |
-| `TipoPagamento` | VARCHAR(20) | Forma de pagamento (Dinheiro, VC, PIX, VE) |
-| `SaoClientes` | VARCHAR(10) | Indica se são clientes recorrentes (Sim/Não) |
-| `Foto` | VARBINARY(MAX) | Foto opcional do atendimento |
-| `Tipo_Atendimento` | VARCHAR(20) | Local do atendimento (Salão/Domicilio) |
-
-## 📋 Consultas Disponíveis
-
-### Consultas Básicas
-- **Visualização completa** de registros
-- **Maior e menor** faturamento
-- **Média** de valores
-
-### Análises Avançadas (Missões)
-1. **Faturamento por data e cliente**
-2. **Faturamento por tipo de serviço**
-3. **Definição de metas** (anual, mensal, semanal, diária)
-4. **Variação percentual** entre meses
-5. **Comparativo de metas** vs realizado
-6. **Análise de tendência** (crescimento, queda, estabilidade)
-7. **Metas dinâmicas** com margem de lucro ajustável
-
-## 🛠️ Como Utilizar
-
-### Pré-requisitos
-- Microsoft SQL Server (2012 ou superior)
-- SQL Server Management Studio (opcional)
-- Permissões para criar bancos de dados
-
-### Instalação
-1. Clone este repositório:
-```bash
-git clone https://github.com/matheusmarquezinhub/Analise-de-Faturamento-SQL-Server.git
-```
-
-2. Execute o script completo no SQL Server:
 ```sql
-USE master;
-GO
-\i Atendimento_Database.sql
+CREATE TABLE ControleAtendimento
+(
+  ID_Dados SMALLINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+  Data DATE NOT NULL DEFAULT GETDATE(),
+  Comanda INT NOT NULL CHECK (Comanda > 0),
+  Cliente VARCHAR(255) NOT NULL,
+  Servico VARCHAR(50) NOT NULL,
+  Valores DECIMAL(10,2) NOT NULL CHECK (Valores >= 0),
+  TipoPagamento VARCHAR(20) NOT NULL CHECK (TipoPagamento IN ('Dinheiro', 'VC', 'PIX', 'VE')),
+  SaoClientes VARCHAR(10) CHECK (SaoClientes IN ('Sim', 'Não')),
+  Foto VARBINARY(MAX),
+  TipoAtendimento VARCHAR(20) CHECK (TipoAtendimento IN ('Salão', 'Domicilio'))
+);
 ```
 
-3. Ou execute por seções conforme necessidade
+### Principais Consultas SQL
 
-### Personalização
-Ajuste as variáveis de acordo com sua realidade:
+#### 1. Consulta de Faturamento por Período
 ```sql
--- Meta anual desejada
-DECLARE @MetaAnual DECIMAL(10,2) = 80000;
-
--- Margem de lucro para metas dinâmicas
-DECLARE @MargemLucro DECIMAL(5,2) = 15;
+SELECT 
+    DATEPART(YEAR, Data) AS Ano,
+    DATEPART(MONTH, Data) AS Mes,
+    SUM(Valores) AS TotalFaturamento,
+    COUNT(*) AS QuantidadeAtendimentos
+FROM ControleAtendimento
+GROUP BY DATEPART(YEAR, Data), DATEPART(MONTH, Data)
+ORDER BY Ano, Mes;
 ```
 
-## 📊 Exemplos de Saída
+#### 2. Análise de Ticket Médio
+```sql
+SELECT 
+    Servico,
+    AVG(Valores) AS TicketMedio,
+    COUNT(*) AS TotalAtendimentos,
+    SUM(Valores) AS FaturamentoTotal
+FROM ControleAtendimento
+GROUP BY Servico
+ORDER BY TicketMedio DESC;
+```
 
-### Relatório de Metas
-| Ano | Mes | TotalAtual | MetaMensal | PercentualMeta | Tendencia |
-|-----|-----|------------|------------|----------------|-----------|
-| 2024 | 1 | 8500.00 | 6666.67 | 127.50% | Crescimento |
+#### 3. Performance por Tipo de Pagamento
+```sql
+SELECT 
+    TipoPagamento,
+    COUNT(*) AS Quantidade,
+    SUM(Valores) AS Faturamento,
+    AVG(Valores) AS ValorMedio
+FROM ControleAtendimento
+GROUP BY TipoPagamento
+ORDER BY Faturamento DESC;
+```
 
-### Análise por Serviço
-| Servico | Faturamento | Participação |
-|---------|------------|--------------|
-| Coloração | 3200.00 | 37.6% |
-| Corte | 2800.00 | 32.9% |
+## 📊 Medidas DAX para Power BI
+
+### Medidas Financeiras Principais
+
+```dax
+Receita Bruta = 
+SUM(fDados[Valores])
+
+Receita Líquida = 
+SUMX(
+    fDados,
+    VAR Receita = fDados[Valores]
+    VAR Taxa = 
+        SWITCH(
+            fDados[TipoPagamento],
+            "VE", 0.02,
+            "VC", 0.04,
+            0
+        )
+    RETURN Receita * (1 - Taxa)
+)
+
+Lucro Líquido = 
+[Receita Líquida] - [Despesas]
+```
+
+### Medidas de Variação e Performance
+
+```dax
+Variação % Mensal = 
+DIVIDE(
+    [Receita Bruta] - CALCULATE([Receita Bruta], DATEADD(dCalendario[Data], -1, MONTH)),
+    CALCULATE([Receita Bruta], DATEADD(dCalendario[Data], -1, MONTH))
+)
+
+Ticket Médio = 
+DIVIDE(
+    [Receita Bruta],
+    COUNTROWS(fDados)
+)
+```
+
+### Medidas de Análise Comparativa
+
+```dax
+Performance vs Meta = 
+DIVIDE(
+    [Receita Bruta],
+    [Meta Mensal],
+    0
+)
+
+% Margem Líquida = 
+DIVIDE(
+    [Lucro Líquido],
+    [Receita Bruta],
+    0
+)
+```
+
+## 📈 Dashboard Power BI - Visualizações
+
+### Visão Geral do Dashboard
+
+**Principais Componentes:**
+- Cards com KPIs principais (Receita, Lucro, Ticket Médio)
+- Gráficos de tendência temporal
+- Comparativos com período anterior
+- Indicadores de performance visual
+
+### Análise Financeira Detalhada
+
+**Métricas Incluídas:**
+- Evolução da receita e lucro
+- Margens de profitability
+- Variações percentuais
+- Análise por canal de venda
+
+### Métricas Operacionais
+
+**Indicadores Chave:**
+- Volume de atendimentos
+- Eficiência operacional
+- Performance por serviço
+- Análise de sazonalidade
+
+## 📊 Principais KPIs Monitorados
+
+### Financeiros
+- ✅ Receita Bruta e Líquida
+- ✅ Lucro Líquido
+- ✅ Margem de Profitability
+- ✅ Ticket Médio
+- ✅ Variações Percentuais
+
+### Operacionais
+- ✅ Volume de Atendimentos
+- ✅ Eficiência Operacional
+- ✅ Performance por Serviço
+- ✅ Taxa de Retenção de Clientes
+
+### Comparativos
+- ✅ vs Período Anterior
+- ✅ vs Meta Estabelecida
+- ✅ vs Ano Anterior
+- ✅ Benchmarking setorial
+
+## 🔧 Tecnologias Utilizadas
+
+- **Microsoft SQL Server**: Banco de dados principal
+- **Power BI**: Visualização e dashboard
+- **DAX**: Linguagem de fórmulas analíticas
+- **SQL**: Consultas e manipulação de dados
+- **Git**: Controle de versão
+
+## 📋 Pré-requisitos
+
+- SQL Server 2012 ou superior
+- Power BI Desktop
+- Conhecimento básico de SQL e DAX
+- Accesso a dados de transações
+
+## 🛠️ Customização
+
+### Adicionar Novas Métricas
+```sql
+-- Exemplo: Nova métrica personalizada
+ALTER TABLE ControleAtendimento
+ADD NovaColuna DECIMAL(10,2);
+```
+
+### Modificar Medidas DAX
+```dax
+// Exemplo: Nova medida personalizada
+Nova Métrica = 
+CALCULATE(
+    [Receita Bruta],
+    fDados[TipoAtendimento] = "Salão"
+)
+```
 
 ## 🤝 Contribuição
 
-Contribuições são bem-vindas! Sinta-se à vontade para:
+Contribuições são bem-vindas! Siga estos passos:
 
 1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
+2. Crie uma branch para sua feature
+3. Commit suas mudanças
+4. Push para a branch
 5. Abra um Pull Request
 
 ## 📞 Suporte
 
-Em caso de dúvidas ou problemas:
+Para dúvidas ou problemas:
 
 - **Email**: [marquuezinmatheus@gmail.com](mailto:marquuezinmatheus@gmail.com)
 
