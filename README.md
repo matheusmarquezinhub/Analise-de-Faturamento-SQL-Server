@@ -29,7 +29,7 @@ Este repositório contém um sistema completo de análise de faturamento desenvo
 | `TipoPagamento` | VARCHAR(20) | Forma de pagamento (Dinheiro, VC, PIX, VE) |
 | `SaoClientes` | VARCHAR(10) | Indica se são clientes recorrentes (Sim/Não) |
 | `Foto` | VARBINARY(MAX) | Foto opcional do atendimento |
-| `TipoAtendimento` | VARCHAR(20) | Local do atendimento (Salão/Domicilio) |
+| `Tipo_Atendimento` | VARCHAR(20) | Local do atendimento (Salão/Domicilio) |
 
 ## 📋 Consultas Disponíveis
 
@@ -107,7 +107,6 @@ Contribuições são bem-vindas! Sinta-se à vontade para:
 Em caso de dúvidas ou problemas:
 
 - **Email**: [marquuezinmatheus@gmail.com](mailto:marquuezinmatheus@gmail.com)
-- **Issues**: [GitHub Issues](https://github.com/matheusmarquezinhub/analise-faturamento-sql/issues)
 
 ---
 
