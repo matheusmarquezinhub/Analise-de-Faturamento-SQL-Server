@@ -1,4 +1,71 @@
-## Banco de dados utilizado
+-- =============================================
+-- BANCO DE DADOS: SISTEMA DE CONTROLE DE ATENDIMENTO
+-- ARQUIVO: Atendimento_Database.sql
+-- DESCRIÇÃO: Criação do banco, tabelas e consultas analíticas
+-- DATA: 2024
+-- =============================================
+
+-- =============================================
+-- 1. CRIAÇÃO DO BANCO DE DADOS
+-- =============================================
+
+CREATE DATABASE Atendimento
+ON PRIMARY 
+(
+    NAME = Atendimento_Data,
+    FILENAME = 'C:\SQLData\Atendimento.mdf',
+    SIZE = 20MB,           
+    MAXSIZE = UNLIMITED,
+    FILEGROWTH = 10MB     
+)
+LOG ON 
+(
+    NAME = Atendimento_Log,
+    FILENAME = 'C:\SQLData\Atendimento.ldf',
+    SIZE = 10MB,           
+    MAXSIZE = UNLIMITED,
+    FILEGROWTH = 5MB     
+);
+GO
+
+-- =============================================
+-- 2. CRIAÇÃO DA TABELA PRINCIPAL
+-- =============================================
+
+USE Atendimento;
+GO
+
+CREATE TABLE ControleAtendimento
+(
+  ID_Dados SMALLINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+  Data DATE NOT NULL DEFAULT GETDATE(),
+  Comanda INT NOT NULL CHECK (Comanda > 0),
+  Cliente VARCHAR(255) NOT NULL,
+  Servico VARCHAR(50) NOT NULL,
+  Valores DECIMAL(10,2) NOT NULL CHECK (Valores >= 0),
+  TipoPagamento VARCHAR(20) NOT NULL CHECK (TipoPagamento IN ('Dinheiro', 'VC', 'PIX', 'VE')),
+  SaoClientes VARCHAR(10) CHECK (SaoClientes IN ('Sim', 'Não')),
+  Foto VARBINARY(MAX),
+  TipoAtendimento VARCHAR(20) CHECK (TipoAtendimento IN ('Salão', 'Domicilio'))
+);
+GO
+
+-- =============================================
+-- 3. INSERÇÃO DE DADOS DE EXEMPLO
+-- =============================================
+
+INSERT INTO ControleAtendimento (Data, Comanda, Cliente, Servico, Valores, TipoPagamento, SaoClientes, Tipo_Atendimento)
+VALUES 
+('2024-01-15', 100, 'João Silva', 'Corte', 30.00, 'PIX', 'Sim', 'Salão'),
+('2024-01-15', 101, 'Maria Santos', 'Penteado', 45.00, 'Dinheiro', 'Não', 'Salão'),
+('2024-01-16', 102, 'Pedro Costa', 'Barba', 20.00, 'VC', 'Sim', 'Domicilio'),
+('2024-01-16', 103, 'Ana Oliveira', 'Coloração', 80.00, 'PIX', 'Sim', 'Salão'),
+('2024-01-17', 104, 'Carlos Pereira', 'Corte', 35.00, 'VE', 'Não', 'Salão');
+GO
+
+-- =============================================
+-- 4. CONSULTAS BÁSICAS
+-- =============================================
 
 USE Atendimentos;
 
@@ -6,7 +73,7 @@ USE Atendimentos;
 SELECT *
 FROM ControleAtendimento;
 
--- Obter o maior faturamento
+-- Maior faturamento
 SELECT Cliente, Valores, Data, Servico
 FROM ControleAtendimento
 WHERE Valores = (
@@ -14,7 +81,7 @@ WHERE Valores = (
     FROM ControleAtendimento
 );
 
--- Obter o menor faturamento
+-- Menor faturamento
 SELECT Cliente, Valores, Data, Servico
 FROM ControleAtendimento
 WHERE Valores = (
@@ -22,25 +89,28 @@ WHERE Valores = (
     FROM ControleAtendimento
 );
 
--- Obter média dos valores
+-- Média dos valores
 SELECT AVG(Valores) AS Media
 FROM ControleAtendimento;
 
--- 🎯 Missão 1 — Aquecer os motores
+-- =============================================
+-- 5. CONSULTAS ANALÍTICAS (MISSÕES)
+-- =============================================
+-- 🎯 Missão 1 - Faturamento por data e cliente
 -- Faturamento por data e cliente, ordenado do maior para o menor
 SELECT Data, Cliente, SUM(Valores) AS Faturamento
 FROM ControleAtendimento
 GROUP BY Data, Cliente
 ORDER BY Faturamento DESC;
 
--- 🎯 Missão 2 — Escalar o desafio
+-- 🎯 Missão 2 - Faturamento por serviço
 -- Faturamento por serviço, ordenado do maior para o menor
 SELECT Servico, SUM(Valores) AS Faturamento
 FROM ControleAtendimento
 GROUP BY Servico
 ORDER BY Faturamento DESC;
 
--- Visualizar todos os serviços da tabela dServico
+/*-- Visualizar todos os serviços da tabela dServico
 SELECT *
 FROM dServico;
 
@@ -49,9 +119,9 @@ SELECT Data, s.Descricao, a.Servico, SUM(Valores) AS Faturamento
 FROM ControleAtendimento a
 INNER JOIN dbo.dServico s ON a.Servico = s.IDServico
 GROUP BY Data, s.Descricao, a.Servico
-ORDER BY Faturamento DESC;
+ORDER BY Faturamento DESC;*/
 
--- 🎯 Missão 3 — Metas
+-- 🎯 Missão 3 - Metas de faturamento
 -- Definir meta anual e calcular metas mensal, semanal e diária
 DECLARE @MetaAnual DECIMAL(10,2) = 80000;
 
@@ -61,7 +131,7 @@ SELECT
     @MetaAnual / 52 AS MetaSemanal,
     @MetaAnual / 365 AS MetaDiaria;
 
--- 🎯 Missão 4 — Variação percentual
+-- 🎯 Missão 4 - Variação percentual mensal
 -- Total faturado por ano e mês para os dois últimos meses
 SELECT 
     DATEPART(YEAR, Data) AS Ano,
@@ -72,7 +142,7 @@ WHERE Data >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1)
    OR Data >= DATEFROMPARTS(YEAR(DATEADD(MONTH, -1, GETDATE())), MONTH(DATEADD(MONTH, -1, GETDATE())), 1)
 GROUP BY DATEPART(YEAR, Data), DATEPART(MONTH, Data);
 
--- 🎯 Missão 5 — Comparar meta com resultado real
+-- 🎯 Missão 5 - Comparação com meta mensal
 DECLARE @MetaAnual DECIMAL(10,2) = 80000;
 DECLARE @MetaMensal DECIMAL(10,2) = @MetaAnual / 12;
 
@@ -90,9 +160,8 @@ WITH Faturamento AS (
 )
 SELECT * FROM Faturamento;
 
--- 🎯 Missão 6 — Calcular variação percentual entre meses consecutivos e análise de metas
+-- 🎯 Missão 6 - Variação percentual e tendência
 
--- Declaração de variáveis para controle de metas
 DECLARE @MetaAnual DECIMAL(10,2) = 80000;    -- Meta anual de faturamento
 DECLARE @MetaMensal DECIMAL(10,2) = @MetaAnual / 12;  -- Meta mensal
 
@@ -129,7 +198,7 @@ FROM Faturamento F1
 LEFT JOIN Faturamento F2 ON (F1.Ano * 100 + F1.Mes) = (F2.Ano * 100 + F2.Mes + 1)
 ORDER BY F1.Ano, F1.Mes;
 
--- 🎯 Missão 7 — Meta dinâmica com margem de lucro
+-- 🎯 Missão 7 - Meta dinâmica com margem de lucro
 
 DECLARE @MargemLucro DECIMAL(5,2) = 15;  -- 15% de margem sobre a média histórica
 
@@ -183,3 +252,35 @@ FROM Faturamento F1
 CROSS JOIN CalculoMeta CM
 LEFT JOIN Faturamento F2 ON (F1.Ano * 100 + F1.Mes) = (F2.Ano * 100 + F2.Mes + 1)
 ORDER BY F1.Ano, F1.Mes;
+
+-- =============================================
+-- 6. CONSULTAS ADICIONAIS (OPCIONAIS)
+-- =============================================
+
+-- Total faturado por tipo de pagamento
+SELECT TipoPagamento, SUM(Valores) AS Total
+FROM ControleAtendimento
+GROUP BY TipoPagamento
+ORDER BY Total DESC;
+GO
+
+-- Clientes recorrentes vs novos clientes
+SELECT SaoClientes, COUNT(*) AS Quantidade, SUM(Valores) AS TotalFaturado
+FROM ControleAtendimento
+WHERE SaoClientes IS NOT NULL
+GROUP BY SaoClientes;
+GO
+
+SELECT * FROM ControleAtendimento
+
+-- Faturamento por tipo de atendimento
+SELECT Tipo_Atendimento, SUM(Valores) AS Total
+FROM ControleAtendimento
+WHERE Tipo_Atendimento IS NOT NULL
+GROUP BY Tipo_Atendimento
+ORDER BY Total DESC;
+GO
+
+-- =============================================
+-- FIM DO ARQUVO
+-- =============================================
